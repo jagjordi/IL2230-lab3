@@ -1,0 +1,4 @@
+types_and_constants.vhd
+MAC.vhd
+parallel_neuron.vhd
+
