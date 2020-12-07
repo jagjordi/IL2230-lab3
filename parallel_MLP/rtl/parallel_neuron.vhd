@@ -33,6 +33,9 @@ architecture structure of parallel_neuron is
   type result_tmp_type is array (0 to DATA_DEPTH+1) of signed (DATA_WIDTH-1 downto 0);
   signal result_tmp : result_tmp_type;
 
+  -- ReLU temp signal
+  signal ReLU_output : signed(DATA_WIDTH-1 downto 0);
+
   -- States for FSM
   type state_type is (IDLE, READY);
   signal present_state, next_state : state_type;
@@ -57,6 +60,11 @@ begin  -- architecture structure
         accumulate => result_tmp(i),
         result     => result_tmp(i+1));
   end generate;
+
+  ReLU_1: entity work.ReLU
+    port map (
+      input  => result_tmp(DATA_DEPTH + 1),
+      output => ReLU_output);
 
   --! FSM logic
   process (all)
