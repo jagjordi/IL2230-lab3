@@ -20,3 +20,5 @@ tramp
 # other stuff
 # compiled modelsim files
 work/
+db/
+fv/
