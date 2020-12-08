@@ -4,6 +4,8 @@ use ieee.numeric_std.all;
 use work.types_and_constants.all;
 
 entity parallel_neuron is
+  generic (
+    BYPASS_REG : std_logic := '1');
   port (
     --! clock signal
     clk          : in  std_logic;
@@ -39,6 +41,9 @@ architecture structure of parallel_neuron is
   -- States for FSM
   type state_type is (IDLE, READY);
   signal present_state, next_state : state_type;
+
+  signal latch_data : std_logic;
+
 begin  -- architecture structure
 
   -- Assign weight(0) and data(0) and bias and '1', and input to rest
@@ -61,7 +66,7 @@ begin  -- architecture structure
         result     => result_tmp(i+1));
   end generate;
 
-  ReLU_1: entity work.ReLU
+  ReLU_1 : entity work.ReLU
     port map (
       input  => result_tmp(DATA_DEPTH + 1),
       output => ReLU_output);
@@ -71,14 +76,23 @@ begin  -- architecture structure
   begin
     next_state   <= present_state;
     output_ready <= '0';
+    latch_data   <= '0';
     case(present_state) is
       when IDLE =>
         if new_data = '1' then
           next_state <= READY;
+          latch_data <= '1';
         end if;
       when READY =>
         output_ready <= '1';
-        next_state   <= IDLE;
+        -- If new data comes, calculate immediatelly, else go to idle
+        if new_data = '1' then
+          next_state <= READY;
+          -- if we never go to idle, keep latching data. This happens if we get new data each clock cycle
+          latch_data <= '1';
+        else
+          next_state <= IDLE;
+        end if;
       when others =>
         next_state <= IDLE;
     end case;
@@ -94,18 +108,25 @@ begin  -- architecture structure
     end if;
   end process;
 
-  --! Output reg
-  process (n_rst, clk)
-  begin
-    if n_rst = '0' then
-      output <= to_signed(0, DATA_WIDTH);
-    elsif rising_edge(clk) then
-      if output_ready = '1' then
-        output <= result_tmp(DATA_DEPTH + 1);
-      else
-        output <= to_signed(0, DATA_WIDTH);
-      end if;
-    end if;
-  end process;
+  --! Direct connection to output if BYPASS_REG = 1
+  OUT_GEN : if BYPASS_REG generate
+    output <= result_tmp(DATA_DEPTH + 1);
+  end generate;
 
+  --! Generate an output register if BYPASS_REG = 0
+  REG_GEN : if not BYPASS_REG generate
+    --! Output reg
+    process (n_rst, clk)
+    begin
+      if n_rst = '0' then
+        output <= to_signed(0, DATA_WIDTH);
+      elsif rising_edge(clk) then
+        if latch_data = '1' then
+          output <= result_tmp(DATA_DEPTH + 1);
+        else
+          output <= to_signed(0, DATA_WIDTH);
+        end if;
+      end if;
+    end process;
+  end generate;
 end architecture structure;
