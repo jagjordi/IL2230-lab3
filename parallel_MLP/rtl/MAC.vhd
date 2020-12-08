@@ -26,10 +26,13 @@ architecture behaviour of MAC is
 begin
 
   --! Multiply the inputs without the sign and store in temp
-  temp_mult_result <= mult1 * mult2;
+  --temp_mult_result <= mult1 * mult2;
 
   --! Assign output value, we want to keep the significand digits. In a number Qm.n we ignore the n LSB and m MSB, that
   --! is (2*DATA_WIDTH-m-1 downto n), since m=DATA_WIDTH-FRACTIONAL_BITS it gives:
-  result <= accumulate + temp_mult_result(DATA_WIDTH+FRACTIONAL_BITS-1 downto FRACTIONAL_BITS);
+  --result <= accumulate + temp_mult_result(DATA_WIDTH+FRACTIONAL_BITS-1 downto FRACTIONAL_BITS);
+  
+  --result <= to_signed(1, DATA_WIDTH);
+  result <= mult1+accumulate;
 
 end behaviour;

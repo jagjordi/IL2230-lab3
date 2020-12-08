@@ -33,12 +33,11 @@ architecture structure of parallel_neuron is
   type result_tmp_type is array (0 to DATA_DEPTH+1) of signed (DATA_WIDTH-1 downto 0);
   signal result_tmp : result_tmp_type;
 
-  -- ReLU temp signal
-  signal ReLU_output : signed(DATA_WIDTH-1 downto 0);
-
   -- States for FSM
   type state_type is (IDLE, READY);
   signal present_state, next_state : state_type;
+
+  signal output_ready_tmp : std_logic;
 begin  -- architecture structure
 
   -- Assign weight(0) and data(0) and bias and '1', and input to rest
@@ -61,23 +60,18 @@ begin  -- architecture structure
         result     => result_tmp(i+1));
   end generate;
 
-  ReLU_1: entity work.ReLU
-    port map (
-      input  => result_tmp(DATA_DEPTH + 1),
-      output => ReLU_output);
-
   --! FSM logic
-  process (all)
+  process (present_state, new_data) -- (all)
   begin
     next_state   <= present_state;
-    output_ready <= '0';
+    output_ready_tmp <= '0';
     case(present_state) is
       when IDLE =>
         if new_data = '1' then
           next_state <= READY;
         end if;
       when READY =>
-        output_ready <= '1';
+        output_ready_tmp <= '1';
         next_state   <= IDLE;
       when others =>
         next_state <= IDLE;
@@ -100,12 +94,14 @@ begin  -- architecture structure
     if n_rst = '0' then
       output <= to_signed(0, DATA_WIDTH);
     elsif rising_edge(clk) then
-      if output_ready = '1' then
+      if output_ready_tmp = '1' then
         output <= result_tmp(DATA_DEPTH + 1);
       else
         output <= to_signed(0, DATA_WIDTH);
       end if;
     end if;
   end process;
+
+output_ready <= output_ready_tmp;
 
 end architecture structure;
