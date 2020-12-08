@@ -11,6 +11,10 @@ entity FSM is
     n_rst        : in  std_logic;
     --! new data flag
     new_data     : in  std_logic;
+    --! neurons finished computing
+    neurons_ready   : in  std_logic;
+    --! layers' address
+    read_addr : out unsigned (LAYERS_DEPTH - 1 downto 0);
     --! compute the neurons
     enable_neurons : out std_logic;
     --! save the neurons outputs
@@ -22,7 +26,7 @@ entity FSM is
 end entity FSM;
 architecture structure of FSM is
   -- States for FSM
-  type state_type is (IDLE, FETCHING, COMPUTING);
+  type state_type is (IDLE, INIT, FETCHING, COMPUTING);
   signal present_state, next_state : state_type;
 
   -- Count the num of the current layer
@@ -37,7 +41,7 @@ begin  -- architecture structure
     if n_rst = '0' then
       counter <= (others => '0');
     elsif rising_edge (clk) then
-      if(present_state = FETCHING) then
+      if(present_state /= IDLE) then
         counter <= next_counter;
       end if;
     end if;
@@ -53,14 +57,18 @@ begin  -- architecture structure
     case(present_state) is
       when IDLE =>
         if new_data = '1' then
-          next_state <= FETCHING;
+          next_state <= INIT;
         end if;
+      when INIT =>
+        next_state <= COMPUTING;
       when FETCHING =>
+        next_state <= COMPUTING;
+      when COMPUTING =>
         if next_counter = to_unsigned(0, counter'length) then
+          next_state <= IDLE;
+        else
           next_state <= COMPUTING;
         end if;
-      when others =>
-        next_state <= IDLE;
     end case;
   end process;
 
@@ -75,7 +83,9 @@ begin  -- architecture structure
   end process;
 
   -- Control signals
-  enable_output_neurons <= '1' when (new_data = '1' or present_state = FETCHING or present_state = COMPUTING) else '0';
+  enable_output_neurons <= '1' when (new_data = '1' or present_state = COMPUTING) else '0';
   enable_neurons <= '1' when (present_state = FETCHING) else '0';
+
+  read_addr <= counter;
 
 end architecture structure;

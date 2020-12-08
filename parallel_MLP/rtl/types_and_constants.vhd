@@ -7,10 +7,10 @@ use ieee.math_real.log2;
 -- note: keep the file without indentation to change it with sed
 package types_and_constants is
 
-constant DATA_DEPTH : integer := 8;
+constant DATA_DEPTH : integer := 4;
 
-constant DATA_WIDTH : integer := 32;
-constant FRACTIONAL_BITS : integer := 20;
+constant DATA_WIDTH : integer := 8;
+constant FRACTIONAL_BITS : integer := 0;
 constant INTEGER_BITS : integer := DATA_WIDTH - FRACTIONAL_BITS;
 
 constant NUM_LAYERS : integer := 4;

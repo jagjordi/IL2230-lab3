@@ -37,6 +37,10 @@ architecture structure of parallel_network is
 
   -- Control signals
   signal enable_neurons, enable_output_neurons : std_logic;
+  signal neurons_ready : std_logic_vector (0 to DATA_DEPTH-1);
+
+  -- Address of the current layer
+  signal read_addr : unsigned (LAYERS_DEPTH - 1 DOWNTO 0);
 
 begin
 
@@ -46,6 +50,8 @@ begin
     clk => clk,
     n_rst => n_rst,
     new_data => new_data,
+    neurons_ready => neurons_ready(0),
+    read_addr => read_addr,
     enable_neurons => enable_neurons,
     enable_output_neurons => enable_output_neurons,
     output_ready => output_ready
@@ -59,11 +65,11 @@ begin
         clk => clk,
         n_rst => n_rst,
         new_data => enable_neurons,
-        data_in => neurons_inputs,
+        data_in => neurons_outputs,
         weights => all_weights(k),
         bias => all_biases(k),
         output => neurons_outputs_tmp(k),
-        output_ready => open
+        output_ready => neurons_ready(k) 
       );
   end generate;
 
@@ -86,7 +92,7 @@ begin
   for k in 0 to DATA_DEPTH - 1 generate
     fake_weights:
     for i in 0 to DATA_DEPTH - 1 generate
-      memory_reading(k)(i) <= to_signed(k, DATA_WIDTH);
+      memory_reading(k)(i) <= signed(resize(read_addr, DATA_WIDTH));
     end generate;
 
     fake_biases:
@@ -104,15 +110,15 @@ begin
       for k in 0 to DATA_DEPTH-1 loop
         -- Enable control signal
         if (enable_output_neurons = '1') then
-          neurons_outputs(k) <= neurons_outputs_tmp(k);
+          if(new_data = '1') then
+            neurons_outputs(k) <= data_in(k);
+          else
+            neurons_outputs(k) <= neurons_outputs_tmp(k);
+          end if;
         end if;
       end loop;
     end if;
   end process;
 
-  data_multiplexers:
-  for k in 0 to DATA_DEPTH-1 generate
-    neurons_inputs(k) <= neurons_outputs(k) when new_data = '0' else data_in(k);
-  end generate;
 
 end architecture structure;
