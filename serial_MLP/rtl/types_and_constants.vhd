@@ -10,15 +10,15 @@ package types_and_constants is
 -- This includes the input and output layers, for example if we have input,
 -- middle and output this number should be 3
 -- M in lab manual
-constant NUM_LAYERS : integer := 4;
+constant NUM_LAYERS : integer := 10;
 
-constant M : integer := 3;
-constant N : integer := 3;
+constant M : integer := 10;
+constant N : integer := 10;
 
 
 -- Number of inputs.
 -- N in lab manual
-constant DATA_DEPTH : integer := 3;
+constant DATA_DEPTH : integer := 10;
 
 -- Data bit-width
 constant DATA_WIDTH : integer := 8;

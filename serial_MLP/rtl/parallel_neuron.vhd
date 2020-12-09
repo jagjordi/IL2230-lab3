@@ -64,7 +64,7 @@ begin  -- architecture structure
   end generate;
 
   --! FSM logic
-  process (all)
+  process (present_state, new_data)
   begin
     next_state   <= present_state;
     output_ready <= '0';
