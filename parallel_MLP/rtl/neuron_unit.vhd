@@ -35,7 +35,7 @@ architecture structure of neuron_unit is
 begin  -- architecture structure
 
   --! Input data MUX
-  reg_input_tmp <= data_input when first_layer else neuron_output_tmp;
+  reg_input_tmp <= data_input when first_layer = '1' else neuron_output_tmp;
 
   --! Register to hold previous value
   data_reg : process (clk, n_rst)
@@ -48,7 +48,7 @@ begin  -- architecture structure
   end process;
 
   --! Output data MUX
-  data_output <= reg_output_tmp when last_layer else (others => (others => '0'));
+  data_output <= neuron_output_tmp when last_layer = '1' else (others => (others => '0'));
 
   --! Chain of neurons
   neuron_array : for i in 0 to DATA_DEPTH-1 generate
@@ -61,7 +61,8 @@ begin  -- architecture structure
         weights      => layer_weights(i),
         bias         => layer_biases(i),
         output       => neuron_output_tmp(i),
-        output_ready => open);
+        output_ready => open
+      );
 
     --! Connections of previous data
     neuron_input_connections : for j in 0 to DATA_DEPTH-1 generate

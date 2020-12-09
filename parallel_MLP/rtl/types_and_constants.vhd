@@ -10,7 +10,7 @@ package types_and_constants is
 -- This includes the input and output layers, for example if we have input,
 -- middle and output this number should be 3
 constant NUM_LAYERS : integer := 4;
-constant DATA_DEPTH : integer := 128;
+constant DATA_DEPTH : integer := 8;
 constant DATA_WIDTH : integer := 32;
 constant FRACTIONAL_BITS : integer := 20;
 

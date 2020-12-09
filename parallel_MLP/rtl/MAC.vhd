@@ -26,6 +26,7 @@ architecture behaviour of MAC is
 begin
 
   --! Multiply the inputs without the sign and store in temp
+  
   temp_mult_result <= mult1 * mult2;
 
   --! Assign output value, we want to keep the significand digits. In a number Qm.n we ignore the n LSB and m MSB, that
