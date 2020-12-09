@@ -22,3 +22,6 @@ tramp
 work/
 db/
 fv/
+modelsim.ini
+vsim.wlf
+transcript
