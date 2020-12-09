@@ -25,6 +25,9 @@ entity parallel_neuron is
 end entity parallel_neuron;
 architecture structure of parallel_neuron is
 
+  signal output_tmp : signed(DATA_WIDTH-1 downto 0);
+  signal ReLU_output : signed(DATA_WIDTH-1 downto 0);
+
   -- We use this to store data+bias in a single array
   type full_data_type is array (0 to DATA_DEPTH) of signed (DATA_WIDTH-1 downto 0);
   signal full_data_in, full_weights : full_data_type;
@@ -36,6 +39,8 @@ architecture structure of parallel_neuron is
   -- States for FSM
   type state_type is (IDLE, READY);
   signal present_state, next_state : state_type;
+
+  signal latch_data : std_logic;
 begin  -- architecture structure
 
   -- Assign weight(0) and data(0) and bias and '1', and input to rest
@@ -63,10 +68,12 @@ begin  -- architecture structure
   begin
     next_state   <= present_state;
     output_ready <= '0';
+    latch_data <= '0';
     case(present_state) is
       when IDLE =>
         if new_data = '1' then
           next_state <= READY;
+          latch_data <= '1';
         end if;
       when READY =>
         output_ready <= '1';
@@ -90,14 +97,21 @@ begin  -- architecture structure
   process (n_rst, clk)
   begin
     if n_rst = '0' then
-      output <= to_signed(0, DATA_WIDTH);
+      output_tmp <= to_signed(0, DATA_WIDTH);
     elsif rising_edge(clk) then
-      if output_ready = '1' then
-        output <= result_tmp(DATA_DEPTH + 1);
+      if latch_data = '1' then
+        output_tmp <= result_tmp(DATA_DEPTH + 1);
       else
-        output <= to_signed(0, DATA_WIDTH);
+        output_tmp <= to_signed(0, DATA_WIDTH);
       end if;
     end if;
   end process;
+
+  ReLU_1: entity work.ReLU
+    port map (
+      input  => output_tmp,
+      output => ReLU_output);
+  
+  output <= ReLU_output;
 
 end architecture structure;
