@@ -20,5 +20,4 @@ type data_in_type is array (0 to DATA_DEPTH-1) of signed (DATA_WIDTH-1 downto 0)
 type layer_weight_type is array (0 to DATA_DEPTH-1) of data_in_type;
 
 
-
 end package;
