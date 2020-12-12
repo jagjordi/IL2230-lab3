@@ -27,10 +27,10 @@ architecture structure of serial_MLP is
 
   -- This ones connect the data output of neuron to mux and register
   signal last_set_reg, data_output_tmp, neuron_mux_input_tmp, neuron_input_tmp : data_in_type;
-  signal neuron_output_tmp, relu_output_tmp : signed(DATA_WIDTH-1 downto 0);
+  signal neuron_output_tmp : signed(DATA_WIDTH-1 downto 0);
   -- Two sets of registers for capturing neuron outputs.
   signal set_1_enbale, set_2_enable : std_logic;
-  signal in_sel, out_sel, new_data_tmp, neuron_ready, activate_registers, final_output, first_layer, last_layer : std_logic;
+  signal in_sel, out_sel, new_data_tmp, neuron_ready, activate_registers, first_layer, last_layer : std_logic;
   signal set_1_reg, set_2_reg: data_in_type;
   signal count_neuron : integer := 0;
   signal count_layer : integer := 0;
@@ -54,10 +54,10 @@ begin  -- architecture structure
       set_2_reg <= (others => (others => '0'));
     elsif rising_edge(clk) then
       if set_1_enbale = '1' then
-        set_1_reg(count_neuron) <= relu_output_tmp;
+        set_1_reg(count_neuron) <= neuron_output_tmp;
       end if;
       if set_2_enable = '1' then
-        set_2_reg(count_neuron) <= relu_output_tmp;
+        set_2_reg(count_neuron) <= neuron_output_tmp;
       end if;
     end if;
   end process;
@@ -82,12 +82,6 @@ begin  -- architecture structure
         output       => neuron_output_tmp,
         output_ready => neuron_ready);
         
-    ReLU : entity work.ReLU
-  port map (
-    input  => neuron_output_tmp,
-    output => relu_output_tmp);
-
-
 
   --! FSM logic
   process (start_signal, present_state, neuron_ready)
